@@ -100,11 +100,12 @@ class GeneticAlgorithm:
         parent_1_genome = self.parents[0].get_genome()
         parent_2_genome = self.parents[1].get_genome()
 
+
+        # Copy to points
         i = 0
         for p in range(len(self.crossover_points)):
             crossover_point = self.crossover_points[p]
 
-            # Copy to point
             while i < crossover_point:
                 gene = parent_1_genome[i]
                 if not is_current_parent_1:
@@ -113,10 +114,9 @@ class GeneticAlgorithm:
                 child_genome.append(gene)
                 i += 1
             
-            # Toogle parent
             is_current_parent_1 = not is_current_parent_1
 
-        # Copy the remaining genes
+        # Copy the remaining genes (from last point)
         while len(child_genome) < self.genome_length:
             gene = parent_1_genome[i]
             if not is_current_parent_1:
