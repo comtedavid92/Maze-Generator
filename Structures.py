@@ -13,7 +13,7 @@ STRUCT_T_2      = 8
 STRUCT_T_3      = 9
 STRUCT_T_4      = 10
 
-STRUCT_SIDE   = 3
+STRUCT_SIDE     = 3 # Structures have a size of STUCT_SIDE * STUCT_SIDE
 STRUCT_NUMBER   = 11
 
 STRUCT = [None] * STRUCT_NUMBER

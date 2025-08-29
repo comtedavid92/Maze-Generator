@@ -3,10 +3,10 @@ import random
 
 class Genome:
     def __init__(self, genome_length, gene_pool):
-        self.genome = []
-        self.genome_length = genome_length
-        self.gene_pool = gene_pool
-        self.score = 0
+        self.genome = []                    # Represents all genes as a list
+        self.genome_length = genome_length  # Genome size (how many genes it has)
+        self.gene_pool = gene_pool          # List of possible genes
+        self.score = 0                      # Genome score (calculated in the fitness function)
 
     # Public
     def get_random_gene(self):
@@ -40,21 +40,22 @@ class Genome:
 
 class GeneticAlgorithm:
     def __init__(self, genome_length, gene_pool, population_size, max_generations, fitness):
-        self.genome_length = genome_length
-        self.gene_pool = gene_pool
-        self.population_size = population_size
-        self.max_generations = max_generations
-        self.fitness = fitness
-        self.crossover_points = [int(1.0 / 2.0 * self.genome_length)]
-        self.mutation_probability = 1.0 / 100.0
+        self.genome_length = genome_length  # Genome size of each individual
+        self.gene_pool = gene_pool          # List of possible genes
+        self.population_size = population_size # Population size of each generation
+        self.max_generations = max_generations # Number of generations (stopping criterion)
+        self.fitness = fitness                 # "Pointer" to the fitness function to use
+        
+        self.crossover_points = [int(1.0 / 2.0 * self.genome_length)] # Crossover points (default 1 point in the middle)
+        self.mutation_probability = 1.0 / 100.0                       # Mutation probability (default 1%)
 
-        self.population = []
-        self.total_score = 0
-        self.parents = []
-        self.child = None
+        self.population = [] # The individuals for each generation
+        self.total_score = 0 # The total score for the current generation
+        self.parents = []    # The parents for the current selection
+        self.child = None    # The current generated child
 
-        self.best_score = 0
-        self.best_genome = None
+        self.best_score = 0     # Keep track of the best score accross generations
+        self.best_genome = None # Keep track of the best genome accross generations
 
     # Private
     def _selection(self):
@@ -99,7 +100,6 @@ class GeneticAlgorithm:
         is_current_parent_1 = True
         parent_1_genome = self.parents[0].get_genome()
         parent_2_genome = self.parents[1].get_genome()
-
 
         # Copy to points
         i = 0
@@ -151,6 +151,9 @@ class GeneticAlgorithm:
         self.crossover_points = crossover_points
 
     def set_mutation_probability(self, mutation_probability):
+        if mutation_probability < 0 or mutation_probability > 1:
+            raise Exception("Mutation probability must be between 0 and 1")
+        
         self.mutation_probability = mutation_probability
 
     def run(self):

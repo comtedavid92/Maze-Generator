@@ -1,32 +1,45 @@
+from Structures import *
 from GeneticAlgorithm import *
 from SearchAlgorithm import *
 from MazeRenderer import *
-from Structures import *
+import traceback
+from dotenv import load_dotenv
 
 
-USE_GENE_POOL_1     = 0
-USE_GENE_POOL_2     = 1
+USE_GENE_POOL_1         = 1 # Each gene is a tile (empty or wall)
+USE_GENE_POOL_2         = 2 # Each gene is a predefined structure
 
-METHOD_TO_USE       = USE_GENE_POOL_1
+METHOD_TO_USE           = USE_GENE_POOL_2
 
-MAZE_HEIGHT         = 30
-MAZE_WIDTH          = 30
+MAZE_HEIGHT             = 15
+MAZE_WIDTH              = 15
 
-MAZE_START          = (0, 1)
-MAZE_END            = (MAZE_HEIGHT - 1, MAZE_WIDTH - 2)
+MAZE_START              = (0, 1)
+MAZE_END                = None
 
-GENE_POOL_1         = [TILE_EMPTY, TILE_WALL]
-GENE_POOL_2         = [
-                        STRUCT_CROSS,
-                        STRUCT_VLINE, STRUCT_HLINE,
-                        STRUCT_ELBOW_1, STRUCT_ELBOW_2, STRUCT_ELBOW_3, STRUCT_ELBOW_4,
-                        STRUCT_T_1, STRUCT_T_2, STRUCT_T_3, STRUCT_T_4
-                    ]
+GENE_POOL_1             = [TILE_EMPTY, TILE_WALL]
+GENE_POOL_2             = [
+                            STRUCT_CROSS,
+                            STRUCT_VLINE, STRUCT_HLINE,
+                            STRUCT_ELBOW_1, STRUCT_ELBOW_2, STRUCT_ELBOW_3, STRUCT_ELBOW_4,
+                            STRUCT_T_1, STRUCT_T_2, STRUCT_T_3, STRUCT_T_4
+                          ]
 
-POPULATION_SIZE     = 100
-MAX_GENERATIONS     = 250
+POPULATION_SIZE         = 50
+MAX_GENERATIONS         = 200
 
-REPLACE_UNREACHABLE = True
+REPLACE_UNREACHABLE     = True      # Replace unreachable tiles (empty) with a wall tiles
+RENDER_MINECRAFT        = False
+
+REWARD_START            = 10.0      # When start tile is empty
+REWARD_END              = 10.0      # When end tile is empty
+REWARD_CLOSE_PATH       = 100.0     # Max reward when Manhattan distance from path to end is 0
+                                    # (helps the GA converge to solvable maze)
+REWARD_PATH             = 1000.0    # When a path is found (maze is solvable)
+REWARD_EXPL_EFFORT      = 5.0       # Multiplied by exploration effort
+REWARD_WALLS            = 2.5       # Multiplied by number of wall tiles
+REWARD_UNREACH_TILES    = -5.0      # Multiplied by number of unreachable tiles
+REWARD_LOOPS            = -10.0     # Multiplied by number of revisited tiles
 
 
 def fitness(genome):
@@ -35,46 +48,44 @@ def fitness(genome):
 
     # Reward empty start
     if maze[MAZE_START[0] * MAZE_WIDTH + MAZE_START[1]] == TILE_WALL:
-        print(score)
         return score
     
-    score += 10.0
+    score += REWARD_START
 
     # Reward empty end
     if maze[MAZE_END[0] * MAZE_WIDTH + MAZE_END[1]] == TILE_WALL:
-        print(score)
         return score
 
-    score += 10.0
+    score += REWARD_END
 
     # Run search algorithm
     sa = SearchAlgorithm(MAZE_START, MAZE_END, maze, next_locations)
     sa.run()
     
     # Reward close path to end
+    distance = sa.get_closest_distance()
+    score += REWARD_CLOSE_PATH / (1.0 + distance)
+    
     path = sa.get_path()
     if path == None:
-        distance = sa.get_closest_distance()
-        score += 100.0 / (1.0 + distance)
-        print(score)
-        return score
+        return score    
 
     # Reward path
-    score += 5000.0
+    score += REWARD_PATH
 
     # Reward exploration effort
-    score += 1.0 * sa.get_expanded()
+    score += REWARD_EXPL_EFFORT * sa.get_expanded()
 
     # Reward walls
-    score += 1.0 * maze.count(TILE_WALL)
+    score += REWARD_WALLS * maze.count(TILE_WALL)
 
     # Penalize unreachable tiles
-    score -= 1.0 * (maze.count(TILE_EMPTY) - sa.get_explored())
+    score += REWARD_UNREACH_TILES * (maze.count(TILE_EMPTY) - sa.get_explored())
 
     # Penalize loops from main path
-    score -= 1.0 * sa.get_revisited()
+    score += REWARD_LOOPS * sa.get_revisited()
 
-    print(score)
+    score = max(0, score)
     return score
 
 
@@ -156,8 +167,88 @@ def print_maze(maze):
         print(line)
 
 
+def load_parameters(env_file):
+    if os.path.exists(env_file):
+        load_dotenv(env_file)
+
+    def get_raw(key):
+        v = os.getenv(key)
+        return v.strip() if v is not None else None
+
+    def get_bool(key, default: bool):
+        v = get_raw(key)
+        if v is None:
+            return default
+        return v.lower() in ("1", "true", "yes", "on")
+
+    def get_int(key, default: int):
+        v = get_raw(key)
+        try:
+            return int(v) if v is not None else default
+        except ValueError:
+            return default
+
+    def get_float(key, default: float):
+        v = get_raw(key)
+        try:
+            return float(v) if v is not None else default
+        except ValueError:
+            return default
+
+    global METHOD_TO_USE, MAZE_HEIGHT, MAZE_WIDTH
+    global POPULATION_SIZE, MAX_GENERATIONS
+    global REPLACE_UNREACHABLE, RENDER_MINECRAFT
+    global REWARD_START, REWARD_END, REWARD_CLOSE_PATH, REWARD_PATH
+    global REWARD_EXPL_EFFORT, REWARD_WALLS, REWARD_UNREACH_TILES, REWARD_LOOPS
+
+    METHOD_TO_USE = get_int("METHOD_TO_USE", METHOD_TO_USE)
+    MAZE_HEIGHT = get_int("MAZE_HEIGHT", MAZE_HEIGHT)
+    MAZE_WIDTH = get_int("MAZE_WIDTH", MAZE_WIDTH)
+    POPULATION_SIZE = get_int("POPULATION_SIZE", POPULATION_SIZE)
+    MAX_GENERATIONS = get_int("MAX_GENERATIONS", MAX_GENERATIONS)
+    REPLACE_UNREACHABLE = get_bool("REPLACE_UNREACHABLE", REPLACE_UNREACHABLE)
+    RENDER_MINECRAFT = get_bool("RENDER_MINECRAFT", RENDER_MINECRAFT)
+    REWARD_START = get_float("REWARD_START", REWARD_START)
+    REWARD_END = get_float("REWARD_END", REWARD_END)
+    REWARD_CLOSE_PATH = get_float("REWARD_CLOSE_PATH", REWARD_CLOSE_PATH)
+    REWARD_PATH = get_float("REWARD_PATH", REWARD_PATH)
+    REWARD_EXPL_EFFORT = get_float("REWARD_EXPL_EFFORT", REWARD_EXPL_EFFORT)
+    REWARD_WALLS = get_float("REWARD_WALLS", REWARD_WALLS)
+    REWARD_UNREACH_TILES = get_float("REWARD_UNREACH_TILES", REWARD_UNREACH_TILES)
+    REWARD_LOOPS = get_float("REWARD_LOOPS", REWARD_LOOPS)
+    
+    global MAZE_END
+    MAZE_END = (MAZE_HEIGHT - 1, MAZE_WIDTH - 2)
+
+
+def print_parameters():
+    print("## Parameters:")
+    print("- METHOD_TO_USE " + str(METHOD_TO_USE))
+    print("- MAZE_HEIGHT " + str(MAZE_HEIGHT))
+    print("- MAZE_WIDTH " + str(MAZE_WIDTH))
+    print("- POPULATION_SIZE " + str(POPULATION_SIZE))
+    print("- MAX_GENERATIONS " + str(MAX_GENERATIONS))
+    print("- REPLACE_UNREACHABLE " + str(REPLACE_UNREACHABLE))
+    print("- RENDER_MINECRAFT " + str(RENDER_MINECRAFT))
+    print("- REWARD_START " + str(REWARD_START))
+    print("- REWARD_END " + str(REWARD_END))
+    print("- REWARD_CLOSE_PATH " + str(REWARD_CLOSE_PATH))
+    print("- REWARD_PATH " + str(REWARD_PATH))
+    print("- REWARD_EXPL_EFFORT " + str(REWARD_EXPL_EFFORT))
+    print("- REWARD_WALLS " + str(REWARD_WALLS))
+    print("- REWARD_UNREACH_TILES " + str(REWARD_UNREACH_TILES))
+    print("- REWARD_LOOPS " + str(REWARD_LOOPS))
+
+
 def main():
-    # Check maze size when second pool is used
+    # Load parameters (parse .env if it exists)
+    load_parameters(".env")
+    print_parameters()
+
+    # Check parameters
+    if METHOD_TO_USE not in [USE_GENE_POOL_1, USE_GENE_POOL_2]:
+        raise Exception("Method to use " + str(METHOD_TO_USE) + " does not exist")
+
     if METHOD_TO_USE == USE_GENE_POOL_2 and MAZE_HEIGHT % STRUCT_SIDE != 0:
         raise Exception("Maze height must be a multiple of " + str(STRUCT_SIDE))
     
@@ -185,6 +276,7 @@ def main():
     # Get best generated maze
     best_genome = ga.get_best_genome()
     maze = genome_to_maze(best_genome.get_genome())
+    print("## Best score: " + str(best_genome.get_score()))
     
     # Run search algorithm
     sa = SearchAlgorithm(MAZE_START, MAZE_END, maze, next_locations)
@@ -207,11 +299,18 @@ def main():
     for pL in path_locations:
         locations.append(list(pL))
 
-    # Render the maze
+    # Render the maze (web)
     mr = MazeRendered(MAZE_HEIGHT, MAZE_WIDTH, maze, start, end, locations)
-    mr.render()
+    mr.render_web()
 
-    print("Best score: " + str(best_genome.get_score()))
+    # Render the maze (Minecraft)
+    if RENDER_MINECRAFT:
+        mr.render_minecraft()
+
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as e:
+        print("## Error: " + str(e))
+        traceback.format_exc()

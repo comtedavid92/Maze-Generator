@@ -1,67 +1,103 @@
 <!DOCTYPE html>
 <html>
 <body>
-
-    <canvas id="canvas" width="750" height="750" style="border:1px solid black;"></canvas>
+    <canvas id="canvas" height="750" style="border:1px solid black;"></canvas>
+    
+    <br>
+    
+    <label for="rotate-button">
+        <input type="checkbox" id="rotate-button"> Rotate the maze
+    </label>
 
     <script src="data_example.js"></script>
     <script src="data.js"></script>
 
     <script>
-        var canvas = document.getElementById("canvas");
-        var ctx = canvas.getContext("2d");
-        
-        var canvasHeight = canvas.height;
-        var canvasWidth = canvas.width;
+        function drawMaze(rotation) {
+            var canvas = document.getElementById("canvas");
+            var ctx = canvas.getContext("2d");
+            
+            var canvasHeight = canvas.height;
+            var canvasWidth = canvasHeight * width / height;
+            document.getElementById("canvas").setAttribute("width", canvasWidth);
 
-        var tileHeight = canvasHeight / height;
-        var tileWidth = canvasWidth / width;
+            var tileHeight = canvasHeight / height;
+            var tileWidth = canvasWidth / width;
 
-        var tileHeightPadding = 0.25 * tileHeight;
-        var tileWidthPadding = 0.25 * tileWidth;
+            var tileHeightPadding = 0.25 * tileHeight;
+            var tileWidthPadding = 0.25 * tileWidth;
+            
+            if(rotation) {
+                ctx.save();
+                ctx.rotate(Math.PI);
+                ctx.translate(-canvasWidth, -canvasHeight);
+            }
 
-        // Draw maze
-        var index = 0;
-        for(var i = 0;  i < height; i++) {
-            for(var j = 0; j < width; j++) {
+            // Draw maze
+            var index = 0;
+            for(var i = 0;  i < height; i++) {
+                for(var j = 0; j < width; j++) {
 
-                if(maze[index] == 0) {
-                    ctx.fillStyle = "white";
-                } else {
-                    ctx.fillStyle = "black";
+                    if(maze[index] == 0) {
+                        ctx.fillStyle = "white";
+                    } else {
+                        ctx.fillStyle = "black";
+                    }
+
+                    ctx.fillRect(j * tileWidth, i * tileHeight, tileWidth, tileHeight);
+
+                    index++;
                 }
+            }
 
-                ctx.fillRect(j * tileWidth, i * tileHeight, tileWidth, tileHeight);
+            // Draw path
+            ctx.fillStyle = "grey";
+            for(var i = 0; i < pathLocations.length; i++) {
+                var row = pathLocations[i][0];
+                var col = pathLocations[i][1];
 
-                index++;
+                ctx.fillRect(
+                    col * tileWidth + tileWidthPadding, row * tileHeight + tileHeightPadding,
+                    tileWidth - 2.0 * tileWidthPadding, tileHeight - 2.0 * tileHeightPadding
+                );
+            }
+
+            // Draw start
+            ctx.fillStyle = "green";
+            {
+                var row = start[0];
+                var col = start[1];
+                ctx.fillRect(
+                    col * tileWidth + tileWidthPadding, row * tileHeight + tileHeightPadding,
+                    tileWidth - 2.0 * tileWidthPadding, tileHeight - 2.0 * tileHeightPadding
+                );
+            }
+
+            // Draw end
+            ctx.fillStyle = "red";
+            {
+                var row = end[0];
+                var col = end[1];
+                ctx.fillRect(
+                    col * tileWidth + tileWidthPadding, row * tileHeight + tileHeightPadding,
+                    tileWidth - 2.0 * tileWidthPadding, tileHeight - 2.0 * tileHeightPadding
+                );
+            }
+
+            if(rotation) {
+                ctx.restore();
             }
         }
 
-        // Draw path
-        ctx.fillStyle = "green";
-        for(var i = 0; i < pathLocations.length; i++) {
-            var row = pathLocations[i][0];
-            var col = pathLocations[i][1];
-
-            ctx.fillRect(
-                col * tileWidth + tileWidthPadding, row * tileHeight + tileHeightPadding,
-                tileWidth - 2.0 * tileWidthPadding, tileHeight - 2.0 * tileHeightPadding
-            );
-        }
-
-        // Draw start and end
-        ctx.fillStyle = "red";
-        var startEndLocations = [start, end];
-        for(var i = 0; i < startEndLocations.length; i++) {
-            var row = startEndLocations[i][0];
-            var col = startEndLocations[i][1];
-
-            ctx.fillRect(
-                col * tileWidth + tileWidthPadding, row * tileHeight + tileHeightPadding,
-                tileWidth - 2.0 * tileWidthPadding, tileHeight - 2.0 * tileHeightPadding
-            );
-        }
+        document.getElementById("rotate-button").addEventListener("change", function () {
+            if (this.checked) {
+                drawMaze(true);
+            } else {
+                drawMaze(false);
+            }
+        });
+        
+        drawMaze(false);
     </script>
-
 </body>
 </html>

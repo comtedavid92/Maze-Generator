@@ -1,29 +1,29 @@
-from collections import deque
 import math
+from collections import deque
 
 
 class Node:
     def __init__(self, parent, location):
-        self.parent = parent
-        self.location = location
-        self.steps = 0
+        self.parent = parent        # Parent node
+        self.location = location    # Location of the node
+        self.steps = 0              # Number of steps so far
 
 
 class SearchAlgorithm:
     def __init__(self, start, end, grid, next_locations):
-        self.start = start
-        self.end = end
-        self.grid = grid
-        self.next_locations = next_locations
+        self.start = start  # Start location
+        self.end = end      # End location
+        self.grid = grid    # Grid as a list of locations
+        self.next_locations = next_locations # "Pointer" to the next locations function
         
-        self.path = None                    # Last node when a path is found
-        self.path_locations = []            # Locations from start to end
+        self.path = None                     # Last node when a path is found
+        self.path_locations = []             # Locations from start to end
 
-        self.expanded = 0                   # Number of expanded locations before finding the path
-        self.closest_distance = math.inf    # Closest Manhattan distance before finding the path
+        self.expanded = 0                    # Number of expanded locations before finding the path
+        self.closest_distance = math.inf     # Closest Manhattan distance before finding the path
 
-        self.explored_locations = set()     # Number of accessible locations from start
-        self.revisited = 0                  # Number of revisited locations
+        self.explored_locations = set()      # Number of accessible locations from start
+        self.revisited = 0                   # Number of revisited locations
 
     # Public    
     def get_path(self):
