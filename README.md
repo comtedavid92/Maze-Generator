@@ -1,14 +1,12 @@
 # Maze Generator for Minecraft
 
-This tool generates 2D mazes (each cell being either a wall or an empty space).<br>
-Mazes are rendered in a web browser and can be rendered in Minecraft for play.<br>
-Maze generation is based on a genetic algorithm.
+This tool generates 2D mazes (each cell being either a wall or an empty space). Mazes are rendered in a web browser and can be rendered in Minecraft for play. Maze generation is based on a genetic algorithm.
 
 Two generation approaches are:
 - **Gene Pool 1**: each gene is a tile (empty or wall)
 - **Gene Pool 2**: each gene is a predefined structure
 
-See [examples](#examples)
+See [examples](#examples) of generated mazes.
 
 ## Requirements
 - Python 3
@@ -36,7 +34,7 @@ Optional :
 
 ## Environment file (.env)
 
-If you wish to adjust these settings, please create an `.env` file by copying `example.env`
+If you wish to adjust these settings, please create an `.env` file by copying `example.env`.
 
 | Variable             | Type    | Default | Notes |
 | -                    | -       | -       | - |
