@@ -14,13 +14,13 @@ See [examples](#examples) of generated mazes.
 - requests
 - nbtlib
 
-Optional :
+Optional:
 - Minecraft Java Edition
 - GDMC HTTP Interface Mod
 
 ## Usage
 - Install Python 3
-- Then, run:
+- Then, run the generation:
 ```bash
 git clone https://github.com/comtedavid92/Maze-Generator.git
 cd Maze-Generator
@@ -28,9 +28,15 @@ python -m pip install -r requirements.txt
 python MazeGenerator.py
 ```
 
-Optional :
+Optional:
 - Install Minecraft Java Edition
 - Install [GDMC HTTP Interface Mod](https://github.com/Niels-NTG/gdmc_http_interface)
+
+Minecraft maze rendering:
+- Move your player to a sufficiently large and flat area  
+- Make sure there are no objects around  
+- Run the generation  
+- Look around, the maze should have appeared near your position
 
 ## Environment file (.env)
 
