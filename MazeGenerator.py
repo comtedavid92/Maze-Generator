@@ -221,6 +221,29 @@ def load_parameters(env_file):
     MAZE_END = (MAZE_HEIGHT - 1, MAZE_WIDTH - 2)
 
 
+def check_parameters():
+    if METHOD_TO_USE not in [USE_GENE_POOL_1, USE_GENE_POOL_2]:
+        raise Exception("Method to use " + str(METHOD_TO_USE) + " does not exist")
+    
+    if MAZE_HEIGHT < 2:
+        raise Exception("Maze height cannot be smaller than 2")
+    
+    if MAZE_WIDTH < 2:
+        raise Exception("Maze width cannot be smaller than 2")
+
+    if METHOD_TO_USE == USE_GENE_POOL_2 and MAZE_HEIGHT % STRUCT_SIDE != 0:
+        raise Exception("Maze height must be a multiple of " + str(STRUCT_SIDE))
+    
+    if METHOD_TO_USE == USE_GENE_POOL_2 and MAZE_WIDTH % STRUCT_SIDE != 0:
+        raise Exception("Maze width must be a multiple of " + str(STRUCT_SIDE))
+    
+    if POPULATION_SIZE < 1:
+        raise Exception("Population size cannot be smaller than 1")
+    
+    if MAX_GENERATIONS < 1:
+        raise Exception("Max generations cannot be smaller than 1")
+
+
 def print_parameters():
     print("## Parameters:")
     print("- METHOD_TO_USE " + str(METHOD_TO_USE))
@@ -243,17 +266,8 @@ def print_parameters():
 def main():
     # Load parameters (parse .env if it exists)
     load_parameters(".env")
+    check_parameters()
     print_parameters()
-
-    # Check parameters
-    if METHOD_TO_USE not in [USE_GENE_POOL_1, USE_GENE_POOL_2]:
-        raise Exception("Method to use " + str(METHOD_TO_USE) + " does not exist")
-
-    if METHOD_TO_USE == USE_GENE_POOL_2 and MAZE_HEIGHT % STRUCT_SIDE != 0:
-        raise Exception("Maze height must be a multiple of " + str(STRUCT_SIDE))
-    
-    if METHOD_TO_USE == USE_GENE_POOL_2 and MAZE_WIDTH % STRUCT_SIDE != 0:
-        raise Exception("Maze width must be a multiple of " + str(STRUCT_SIDE))
 
     # Set genome properties
     genome_length = 0

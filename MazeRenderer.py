@@ -39,7 +39,7 @@ class MinecraftConnector:
             data = requests.get(URI_PLAYERS)
         except:
             raise Exception(
-                "Player position is not accessible," \
+                "Player position is not accessible, " \
                 "make sure Minecraft is running with the GDMC HTTP interface mod"
             )
         
@@ -66,14 +66,14 @@ class MinecraftConnector:
             data = requests.put(URI_BLOCK, json=body)
         except:
             raise Exception(
-                "Blocks cannot be placed," \
+                "Blocks cannot be placed, " \
                 "make sure Minecraft is running with the GDMC HTTP interface mod"
             )
         
         for object in data.json():
             if object["status"] == 0:
                 raise Exception(
-                    "Blocks cannot be placed," \
+                    "Blocks cannot be placed, " \
                     "make sure the player is on a flat surface with no objects around"
                 )
 
